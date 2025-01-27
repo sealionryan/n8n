@@ -23,10 +23,19 @@ jobs:
         run: |
           git remote add upstream https://github.com/n8n-io/n8n.git
           
-      - name: Fetch latest stable release
+      - name: Fetch and checkout latest stable release
         run: |
+          # First, fetch all tags from upstream
+          git fetch upstream --tags
+          
+          # Get the latest non-prerelease tag
           LATEST_TAG=$(curl -s https://api.github.com/repos/n8n-io/n8n/releases | jq -r '.[] | select(.prerelease == false) | .tag_name' | head -n1)
-          LATEST_TAG_REF="refs/tags/${LATEST_TAG}"
-          git fetch upstream "${LATEST_TAG_REF}"
-          git checkout -b latest-stable "refs/tags/${LATEST_TAG}"
+          
+          # Get the commit hash that this tag points to
+          COMMIT_HASH=$(git ls-remote upstream "refs/tags/${LATEST_TAG}" | cut -f1)
+          
+          # Create and checkout a new branch from this commit
+          git checkout -b latest-stable ${COMMIT_HASH}
+          
+          # Force push to update our repo
           git push -f origin latest-stable
