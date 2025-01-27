@@ -4,41 +4,38 @@ on:
     - cron: '0 12 * * 0'  # Runs at 4am/3am Pacific on Sunday
   workflow_dispatch:  # Manual trigger option
 
-permissions:
-  contents: write
-
 jobs:
   sync:
     runs-on: ubuntu-latest
-    
+
     steps:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
-      
+          token: ${{ secrets.PAT_TOKEN }}
+
       - name: Configure Git
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-      
+
       - name: Add upstream remote
         run: |
           git remote add upstream https://github.com/n8n-io/n8n.git
-          
+
       - name: Fetch and checkout latest stable release
         run: |
           # First, fetch all tags from upstream
           git fetch upstream --tags
-          
+
           # Get the latest non-prerelease tag
           LATEST_TAG=$(curl -s https://api.github.com/repos/n8n-io/n8n/releases | jq -r '.[] | select(.prerelease == false) | .tag_name' | head -n1)
-          
+
           # Get the commit hash that this tag points to
           COMMIT_HASH=$(git ls-remote upstream "refs/tags/${LATEST_TAG}" | cut -f1)
-          
+
           # Create and checkout a new branch from this commit
           git checkout -b latest-stable ${COMMIT_HASH}
-          
+
           # Force push to update our repo
           git push -f origin latest-stable
