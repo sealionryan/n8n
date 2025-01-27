@@ -1,3 +1,5 @@
+name: Sync Fork with Upstream
+
 on:
   schedule:
     - cron: '0 12 * * 0'  # Runs at 4am/3am Pacific on Sunday
@@ -11,7 +13,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-          token: ${{ secrets.PAT_TOKEN }}
+          token: ${{ secrets.PAT_TOKEN }}  # Preserved as per your preference
 
       - name: Configure Git
         run: |
