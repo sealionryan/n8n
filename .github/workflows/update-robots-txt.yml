@@ -1,0 +1,58 @@
+name: Update robots.txt on Sync
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  update-robots:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the repository
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+        with:
+          # Fetch all history to ensure we can push changes
+          fetch-depth: 0
+
+      # Step 2: Set up Git configuration
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      # Step 3: Check if the commit was made by the GitHub Actions bot to prevent infinite loops
+      - name: Check Commit Author
+        id: check_author
+        run: |
+          if [[ "${{ github.actor }}" == "github-actions" ]]; then
+            echo "Action commit detected. Skipping robots.txt update."
+            echo "skip=true" >> $GITHUB_OUTPUT
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
+
+      # Step 4: Create or update robots.txt
+      - name: Create robots.txt
+        if: steps.check_author.outputs.skip != 'true'
+        run: |
+          echo "User-agent: *" > robots.txt
+          echo "Disallow: /" >> robots.txt
+
+      # Step 5: Check if robots.txt has changes
+      - name: Check for Changes
+        if: steps.check_author.outputs.skip != 'true'
+        run: |
+          git add robots.txt
+          git diff --cached --exit-code || echo "Changes detected"
+
+      # Step 6: Commit and Push changes if robots.txt was updated
+      - name: Commit and Push changes
+        if: steps.check_author.outputs.skip != 'true' && steps.check_changes.outputs.changed == 'true'
+        run: |
+          git commit -m "Add or update robots.txt to block all robots"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
