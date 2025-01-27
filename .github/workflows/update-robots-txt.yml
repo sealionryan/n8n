@@ -3,7 +3,7 @@ name: Update robots.txt on Sync
 on:
   push:
     branches:
-      - main
+      - master  # Changed from 'main' to 'master' to match your default branch
 
 jobs:
   update-robots:
@@ -27,7 +27,7 @@ jobs:
       - name: Check Commit Author
         id: check_author
         run: |
-          if [[ "${{ github.actor }}" == "github-actions" ]]; then
+          if [[ "${{ github.actor }}" == "github-actions[bot]" ]]; then
             echo "Action commit detected. Skipping robots.txt update."
             echo "skip=true" >> $GITHUB_OUTPUT
           else
@@ -43,10 +43,17 @@ jobs:
 
       # Step 5: Check if robots.txt has changes
       - name: Check for Changes
+        id: check_changes
         if: steps.check_author.outputs.skip != 'true'
         run: |
           git add robots.txt
-          git diff --cached --exit-code || echo "Changes detected"
+          if git diff --cached --exit-code; then
+            echo "No changes to robots.txt."
+            echo "changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "Changes detected in robots.txt."
+            echo "changed=true" >> $GITHUB_OUTPUT
+          fi
 
       # Step 6: Commit and Push changes if robots.txt was updated
       - name: Commit and Push changes
