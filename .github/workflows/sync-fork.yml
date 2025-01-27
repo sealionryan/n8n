@@ -26,6 +26,7 @@ jobs:
       - name: Fetch latest stable release
         run: |
           LATEST_TAG=$(curl -s https://api.github.com/repos/n8n-io/n8n/releases | jq -r '.[] | select(.prerelease == false) | .tag_name' | head -n1)
-          git fetch upstream $LATEST_TAG
-          git checkout $LATEST_TAG
-          git push origin $LATEST_TAG
+          LATEST_TAG_REF="refs/tags/${LATEST_TAG}"
+          git fetch upstream "${LATEST_TAG_REF}"
+          git checkout -b latest-stable "refs/tags/${LATEST_TAG}"
+          git push -f origin latest-stable
