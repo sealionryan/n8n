@@ -1,6 +1,6 @@
 on:
   schedule:
-    - cron: '0 12 * *0'  # Runs at 4am/3am Pacific on Sunday
+    - cron: '0 12 * * 0'  # Runs at 4am/3am Pacific on Sunday
   workflow_dispatch:  # Manual trigger option
 
 jobs:
