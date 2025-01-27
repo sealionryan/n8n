@@ -1,12 +1,11 @@
 name: Sync with n8n Weekly
 on:
   schedule:
-    - cron: '0 12 * * 0'  # Runs at midnight every Sunday
+    - cron: '0 12 * * 0'  # Runs at 4am/3am Pacific on Sunday
   workflow_dispatch:  # Manual trigger option
 
 permissions:
   contents: write
-  workflows: write
 
 jobs:
   sync:
