@@ -1,0 +1,31 @@
+name: Sync with n8n Weekly
+
+on:
+  schedule:
+    - cron: '0 0 * * 0'  # Runs at midnight every Sunday
+  workflow_dispatch:  # Manual trigger option
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      
+      - name: Configure Git
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+      
+      - name: Add upstream remote
+        run: |
+          git remote add upstream https://github.com/n8n-io/n8n.git
+          
+      - name: Fetch latest stable release
+        run: |
+          LATEST_TAG=$(curl -s https://api.github.com/repos/n8n-io/n8n/releases | jq -r '.[] | select(.prerelease == false) | .tag_name' | head -n1)
+          git fetch upstream $LATEST_TAG
+          git checkout $LATEST_TAG
+          git push origin $LATEST_TAG
